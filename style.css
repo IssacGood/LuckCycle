@@ -268,6 +268,30 @@ main{ padding: 8px 16px; }
   cursor: not-allowed;
 }
 
+.monthly-cycle-text{
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.monthly-cycle-text .highlight-high{ color: var(--high); font-weight:700; }
+.monthly-cycle-text .highlight-low{ color: var(--low); font-weight:700; }
+.day-chip-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+.day-chip{
+  font-size:11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+}
+.day-chip.high{ background: rgba(79,209,165,0.15); color: var(--high); }
+.day-chip.low{ background: rgba(224,87,123,0.15); color: var(--low); }
+
 .level-buttons{
   display:flex;
   gap:10px;

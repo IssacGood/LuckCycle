@@ -167,6 +167,7 @@ function renderAll(){
   renderCurrentSlotHint();
   renderHistoryChart();
   renderStats();
+  renderMonthlyCycle();
 }
 
 function renderCurrentSlotHint(){
@@ -433,6 +434,134 @@ clearConfirmBtn.addEventListener("click", async () => {
     clearConfirmBtn.textContent = "永久清除";
   }
 });
+
+// ===== 月週期分析(以日為單位) =====
+let dailyChart = null;
+const HIGH_DAY_THRESHOLD = 2.5; // 當日平均分 >= 此值視為「高潮日」
+const LOW_DAY_THRESHOLD = 1.5;  // 當日平均分 <= 此值視為「低潮日」
+const MIN_DAYS_FOR_CYCLE = 14;  // 至少累積幾天資料才嘗試判斷週期
+
+function computeDailyAverages(){
+  if (allRecords.length === 0) return [];
+  const recordMap = new Map();
+  allRecords.forEach(r => recordMap.set(`${r.dateKey}|${r.slot}`, r.level));
+
+  const first = allRecords[0].ts;
+  const last = new Date();
+  const days = [];
+  let lastLevel = null;
+  let cursor = new Date(first.getFullYear(), first.getMonth(), first.getDate());
+
+  while (cursor <= last){
+    const dKey = dateKey(cursor);
+    let sum = 0, count = 0;
+    for (let slot = 0; slot < SLOTS_PER_DAY; slot++){
+      const key = `${dKey}|${slot}`;
+      if (recordMap.has(key)) lastLevel = recordMap.get(key);
+      if (lastLevel !== null){ sum += lastLevel; count++; }
+    }
+    if (count > 0){
+      days.push({ dateKey: dKey, date: new Date(cursor), avg: sum / count });
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return days;
+}
+
+function daysBetween(d1, d2){
+  return Math.round((d2 - d1) / 86400000);
+}
+
+function gapStats(list){
+  if (list.length < 2) return null;
+  const gaps = [];
+  for (let i = 1; i < list.length; i++){
+    gaps.push(daysBetween(list[i-1].date, list[i].date));
+  }
+  const avgGap = gaps.reduce((a,b)=>a+b,0) / gaps.length;
+  const lastItem = list[list.length - 1];
+  const nextPredicted = new Date(lastItem.date.getTime() + Math.round(avgGap) * 86400000);
+  return { avgGap, gaps, lastItem, nextPredicted, count: list.length };
+}
+
+function fmtDate(d){
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function renderMonthlyCycle(){
+  const days = computeDailyAverages();
+  const textBox = document.getElementById("monthlyCycleText");
+
+  // 折線圖(不論資料夠不夠都先畫出來,讓使用者看到趨勢)
+  if (typeof Chart !== "undefined"){
+    const ctx = document.getElementById("dailyChart");
+    if (dailyChart) dailyChart.destroy();
+    dailyChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: days.map(d => fmtDate(d.date)),
+        datasets: [{
+          label: "當日平均分",
+          data: days.map(d => d.avg),
+          borderColor: "#7c6cf0",
+          backgroundColor: days.map(d =>
+            d.avg >= HIGH_DAY_THRESHOLD ? "#4fd1a5" : d.avg <= LOW_DAY_THRESHOLD ? "#e0577b" : "#7c6cf0"
+          ),
+          pointRadius: days.map(d => (d.avg >= HIGH_DAY_THRESHOLD || d.avg <= LOW_DAY_THRESHOLD) ? 5 : 2),
+          tension: 0.25,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          y: { min: 0.5, max: 3.5, ticks: { stepSize: 1, callback: v => LEVEL_NAME[v] || "" }, grid: { color: "#322c56" } },
+          x: { ticks: { maxTicksLimit: 10, color: "#9c93c4" }, grid: { display:false } }
+        },
+        plugins: { legend: { display:false } }
+      }
+    });
+  }
+
+  if (days.length < MIN_DAYS_FOR_CYCLE){
+    textBox.innerHTML = `目前累積 ${days.length} 天資料,建議至少累積 ${MIN_DAYS_FOR_CYCLE} 天以上才能嘗試判斷月週期。`;
+    return;
+  }
+
+  const highDays = days.filter(d => d.avg >= HIGH_DAY_THRESHOLD);
+  const lowDays = days.filter(d => d.avg <= LOW_DAY_THRESHOLD);
+  const highStats = gapStats(highDays);
+  const lowStats = gapStats(lowDays);
+
+  let html = `<p>已累積 ${days.length} 天資料。</p>`;
+
+  if (highStats){
+    html += `<p>🌟 <span class="highlight-high">超級幸運日</span>平均每隔約 <b>${highStats.avgGap.toFixed(1)} 天</b>出現一次(共出現 ${highStats.count} 次)。
+    最近一次是 <b>${fmtDate(highStats.lastItem.date)}</b>,照這個週期推算,下次大概落在 <b>${fmtDate(highStats.nextPredicted)}</b> 前後,可以特別留意把握。</p>`;
+  } else if (highDays.length === 1){
+    html += `<p>🌟 目前只出現過 1 次超級幸運日(${fmtDate(highDays[0].date)}),還需要再多一次才能算出週期間隔。</p>`;
+  } else {
+    html += `<p>🌟 目前尚未出現明顯的超級幸運日(當日平均分 ≥ ${HIGH_DAY_THRESHOLD})。</p>`;
+  }
+
+  if (lowStats){
+    html += `<p>⚠️ <span class="highlight-low">低潮日</span>平均每隔約 <b>${lowStats.avgGap.toFixed(1)} 天</b>出現一次(共出現 ${lowStats.count} 次)。
+    最近一次是 <b>${fmtDate(lowStats.lastItem.date)}</b>,照這個週期推算,下次大概落在 <b>${fmtDate(lowStats.nextPredicted)}</b> 前後,建議提前多留意。</p>`;
+  } else if (lowDays.length === 1){
+    html += `<p>⚠️ 目前只出現過 1 次低潮日(${fmtDate(lowDays[0].date)}),還需要再多一次才能算出週期間隔。</p>`;
+  } else {
+    html += `<p>⚠️ 目前尚未出現明顯的低潮日(當日平均分 ≤ ${LOW_DAY_THRESHOLD})。</p>`;
+  }
+
+  if (highDays.length > 0 || lowDays.length > 0){
+    html += `<div class="day-chip-list">`;
+    html += highDays.map(d => `<span class="day-chip high">🌟 ${fmtDate(d.date)}</span>`).join("");
+    html += lowDays.map(d => `<span class="day-chip low">⚠️ ${fmtDate(d.date)}</span>`).join("");
+    html += `</div>`;
+  }
+
+  textBox.innerHTML = html;
+}
 
 // ===== 頁籤切換 =====
 document.querySelectorAll(".tab-btn").forEach(btn => {

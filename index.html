@@ -122,6 +122,15 @@
         <h3>週期發現</h3>
         <p id="bestWorstText" class="hint">資料不足,尚無法判斷週期</p>
       </div>
+
+      <div class="card">
+        <h3>月週期分析(以日為單位)</h3>
+        <p class="hint small">把每天所有時段平均成「當日分數」,找出高潮日/低潮日大約每隔幾天出現一次</p>
+        <div class="chart-wrap">
+          <canvas id="dailyChart"></canvas>
+        </div>
+        <div id="monthlyCycleText" class="monthly-cycle-text">資料不足,尚無法判斷月週期</div>
+      </div>
     </section>
 
   </main>
