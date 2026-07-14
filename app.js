@@ -230,6 +230,10 @@ function buildFilledSeriesRobust(){
 }
 
 function renderHistoryChart(){
+  if (typeof Chart === "undefined"){
+    console.error("Chart.js 尚未載入,略過繪製折線圖");
+    return;
+  }
   const points = buildFilledSeriesRobust();
   const ctx = document.getElementById("historyChart");
   const labels = points.map(p => p.label);
@@ -264,26 +268,30 @@ function renderStats(){
       ? "尚無資料,開始登記後這裡會出現統計"
       : `目前累積 ${totalCount} 筆紀錄,建議累積 3-4 週後預測會更準確`;
 
-  const ctx = document.getElementById("statsChart");
-  const labels = stats.map(s => slotLabel(s.slot));
-  const data = stats.map(s => s.avg || 0);
+  if (typeof Chart !== "undefined"){
+    const ctx = document.getElementById("statsChart");
+    const labels = stats.map(s => slotLabel(s.slot));
+    const data = stats.map(s => s.avg || 0);
 
-  if (statsChart) statsChart.destroy();
-  statsChart = new Chart(ctx, {
-    type: "bar",
-    data: { labels, datasets: [{
-      label: "平均運勢分數", data,
-      backgroundColor: data.map(v => v === 0 ? "#322c56" : v >= 2.4 ? "#4fd1a5" : v <= 1.6 ? "#e0577b" : "#e0b13f")
-    }]},
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      scales: {
-        y: { min:0, max:3, ticks:{ stepSize:1 }, grid:{ color:"#322c56" } },
-        x: { ticks: { color:"#9c93c4", maxRotation:60, minRotation:60 }, grid:{ display:false } }
-      },
-      plugins: { legend: { display:false } }
-    }
-  });
+    if (statsChart) statsChart.destroy();
+    statsChart = new Chart(ctx, {
+      type: "bar",
+      data: { labels, datasets: [{
+        label: "平均運勢分數", data,
+        backgroundColor: data.map(v => v === 0 ? "#322c56" : v >= 2.4 ? "#4fd1a5" : v <= 1.6 ? "#e0577b" : "#e0b13f")
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          y: { min:0, max:3, ticks:{ stepSize:1 }, grid:{ color:"#322c56" } },
+          x: { ticks: { color:"#9c93c4", maxRotation:60, minRotation:60 }, grid:{ display:false } }
+        },
+        plugins: { legend: { display:false } }
+      }
+    });
+  } else {
+    console.error("Chart.js 尚未載入,略過繪製統計圖");
+  }
 
   const tbody = document.querySelector("#predictTable tbody");
   tbody.innerHTML = stats.map(s => `
