@@ -130,19 +130,59 @@ main{ padding: 8px 16px; }
 
 .note-input{
   width:100%;
-  min-height: 60px;
+  min-height: 110px;
   resize: vertical;
   margin-bottom: 14px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255,255,255,0.03);
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
   font-family: inherit;
 }
 .note-input::placeholder{ color: var(--muted); }
 .note-input:focus{ outline: none; border-color: var(--accent); }
+
+.confirm-box{
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(124,108,240,0.1);
+  border: 1px solid var(--accent);
+}
+.confirm-box.hidden{ display:none; }
+.confirm-text{ margin:0 0 4px; font-size:14px; }
+.confirm-text span{ font-weight:700; }
+.confirm-text span.low{ color: var(--low); }
+.confirm-text span.mid{ color: var(--mid); }
+.confirm-text span.high{ color: var(--high); }
+.confirm-note{
+  margin:0 0 12px;
+  font-size:12px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+.confirm-actions{ display:flex; gap:10px; }
+.confirm-cancel-btn, .confirm-submit-btn{
+  flex:1;
+  padding: 10px 0;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor:pointer;
+}
+.confirm-cancel-btn{
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.confirm-submit-btn{
+  background: var(--accent);
+  color: white;
+}
 
 .record-note{
   display:block;
@@ -150,6 +190,25 @@ main{ padding: 8px 16px; }
   font-size: 12px;
   color: var(--muted);
   white-space: pre-wrap;
+}
+
+.record-actions{
+  display:flex;
+  gap:6px;
+  margin-top:6px;
+}
+.record-actions button{
+  border:1px solid var(--border);
+  background:transparent;
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor:pointer;
+}
+.record-actions button.danger{
+  color: var(--low);
+  border-color: var(--low);
 }
 
 .level-buttons{
@@ -193,10 +252,12 @@ main{ padding: 8px 16px; }
 .today-list li, .raw-list li{
   display:flex;
   justify-content:space-between;
+  align-items:flex-start;
   font-size: 13px;
   padding: 8px 10px;
   border-radius: 8px;
   background: rgba(255,255,255,0.03);
+  gap: 8px;
 }
 .today-list li .tag, .raw-list li .tag{
   font-weight:600;

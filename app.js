@@ -1,7 +1,8 @@
 import {
   auth, db, googleProvider,
   signInWithPopup, signOut, onAuthStateChanged,
-  collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp
+  collection, addDoc, updateDoc, deleteDoc, doc,
+  query, where, orderBy, onSnapshot, serverTimestamp
 } from "./firebase-config.js";
 
 // ===== 基本設定 =====
@@ -94,10 +95,8 @@ function loadRecords(){
 }
 
 // ===== 寫入紀錄 =====
-function submitLevel(level){
+function submitLevel(level, note){
   if (!uid){ alert("請先登入"); return; }
-  const noteInput = document.getElementById("noteInput");
-  const note = noteInput ? noteInput.value.trim() : "";
   const now = new Date();
   const record = {
     uid,
@@ -112,6 +111,7 @@ function submitLevel(level){
 
   addDoc(collection(db, "records"), record).then(() => {
     showPredictionCompare(level, predictedLevel);
+    const noteInput = document.getElementById("noteInput");
     if (noteInput) noteInput.value = "";
   }).catch(err => {
     console.error("寫入失敗", err);
@@ -179,6 +179,11 @@ function renderTodayList(){
       <div>
         <span>${slotLabel(r.slot)}(${pad(r.ts.getHours())}:${pad(r.ts.getMinutes())} 登記)</span>
         ${r.note ? `<span class="record-note">📝 ${escapeHtml(r.note)}</span>` : ""}
+        <div class="record-actions">
+          <button data-action="edit-level" data-id="${r.id}">改等級</button>
+          <button data-action="edit-note" data-id="${r.id}">改備註</button>
+          <button data-action="delete" data-id="${r.id}" class="danger">刪除</button>
+        </div>
       </div>
       <span class="tag ${LEVEL_CLASS[r.level]}">${LEVEL_NAME[r.level]}</span>
     </li>
@@ -317,6 +322,56 @@ function renderStats(){
   }
 }
 
+// ===== 編輯 / 刪除紀錄 =====
+function findRecordById(id){
+  return allRecords.find(r => r.id === id);
+}
+
+function editRecordLevel(id){
+  const r = findRecordById(id);
+  if (!r) return;
+  const input = prompt(`修改等級,輸入 1(低)/ 2(中)/ 3(高):\n目前為 ${LEVEL_NAME[r.level]}`, String(r.level));
+  if (input === null) return;
+  const level = parseInt(input, 10);
+  if (![1,2,3].includes(level)){
+    alert("請輸入 1、2 或 3");
+    return;
+  }
+  updateDoc(doc(db, "records", id), { level }).catch(err => {
+    console.error("修改失敗", err);
+    alert("修改失敗:" + err.message);
+  });
+}
+
+function editRecordNote(id){
+  const r = findRecordById(id);
+  if (!r) return;
+  const input = prompt("修改備註:", r.note || "");
+  if (input === null) return;
+  updateDoc(doc(db, "records", id), { note: input.trim() }).catch(err => {
+    console.error("修改失敗", err);
+    alert("修改失敗:" + err.message);
+  });
+}
+
+function deleteRecord(id){
+  if (!confirm("確定要刪除這筆紀錄嗎?此動作無法復原。")) return;
+  deleteDoc(doc(db, "records", id)).catch(err => {
+    console.error("刪除失敗", err);
+    alert("刪除失敗:" + err.message);
+  });
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action]");
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  if (action === "edit-level") editRecordLevel(id);
+  else if (action === "edit-note") editRecordNote(id);
+  else if (action === "delete") deleteRecord(id);
+});
+
 // ===== 頁籤切換 =====
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -327,12 +382,34 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
   });
 });
 
-// ===== 登記按鈕 =====
+// ===== 登記按鈕:先跳確認卡片,不直接送出 =====
+let pendingLevel = null;
+const confirmBox = document.getElementById("confirmBox");
+const confirmLevelText = document.getElementById("confirmLevelText");
+const confirmNoteText = document.getElementById("confirmNoteText");
+
 document.querySelectorAll(".level-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    const level = parseInt(btn.dataset.level, 10);
-    submitLevel(level);
+    pendingLevel = parseInt(btn.dataset.level, 10);
+    const note = document.getElementById("noteInput").value.trim();
+    confirmLevelText.textContent = LEVEL_NAME[pendingLevel];
+    confirmLevelText.className = LEVEL_CLASS[pendingLevel];
+    confirmNoteText.textContent = note ? `備註:${note}` : "(無備註)";
+    confirmBox.classList.remove("hidden");
   });
+});
+
+document.getElementById("confirmCancelBtn").addEventListener("click", () => {
+  pendingLevel = null;
+  confirmBox.classList.add("hidden");
+});
+
+document.getElementById("confirmSubmitBtn").addEventListener("click", () => {
+  if (pendingLevel === null) return;
+  const note = document.getElementById("noteInput").value.trim();
+  submitLevel(pendingLevel, note);
+  pendingLevel = null;
+  confirmBox.classList.add("hidden");
 });
 
 setInterval(renderCurrentSlotHint, 60 * 1000);
