@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LuckCycle 運勢週期</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f1b3a">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <header class="topbar">
+    <h1>LuckCycle</h1>
+    <p class="subtitle">記錄運勢 · 尋找週期</p>
+    <div id="userBox" class="user-box hidden">
+      <img class="user-avatar" src="" alt="">
+      <span class="user-name"></span>
+      <button id="logoutBtn" class="logout-btn">登出</button>
+    </div>
+  </header>
+
+  <div id="authGate" class="card auth-gate">
+    <p class="hint">請先用 Google 帳號登入,才能開始記錄與同步你的運勢資料</p>
+    <button id="loginBtn" class="google-btn">使用 Google 帳號登入</button>
+  </div>
+
+  <div id="appContent" class="hidden">
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="record">登記</button>
+    <button class="tab-btn" data-tab="history">歷史</button>
+    <button class="tab-btn" data-tab="predict">預測</button>
+  </nav>
+
+  <main>
+
+    <!-- 登記頁 -->
+    <section id="tab-record" class="tab-panel active">
+      <div class="card">
+        <p class="hint" id="currentSlotHint">載入中...</p>
+        <div class="level-buttons">
+          <button class="level-btn low" data-level="1">低</button>
+          <button class="level-btn mid" data-level="2">中</button>
+          <button class="level-btn high" data-level="3">高</button>
+        </div>
+        <div id="predictionCompare" class="prediction-compare hidden"></div>
+      </div>
+
+      <div class="card">
+        <h3>今日已登記</h3>
+        <ul id="todayList" class="today-list">
+          <li class="muted">尚無資料</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 歷史頁 -->
+    <section id="tab-history" class="tab-panel">
+      <div class="card">
+        <h3>歷史運勢折線圖</h3>
+        <p class="hint small">未登記的時段以「延續前一次登記結果」補齊</p>
+        <div class="chart-wrap">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h3>原始登記紀錄</h3>
+        <ul id="rawList" class="raw-list"></ul>
+      </div>
+    </section>
+
+    <!-- 預測頁 -->
+    <section id="tab-predict" class="tab-panel">
+      <div class="card">
+        <h3>運勢統計</h3>
+        <p class="hint small" id="statsSummary">資料累積中...</p>
+        <div class="chart-wrap">
+          <canvas id="statsChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h3>時段推測表</h3>
+        <table id="predictTable" class="predict-table">
+          <thead>
+            <tr><th>時段</th><th>平均分</th><th>推測運勢</th><th>樣本數</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card" id="bestWorstCard">
+        <h3>週期發現</h3>
+        <p id="bestWorstText" class="hint">資料不足,尚無法判斷週期</p>
+      </div>
+    </section>
+
+  </main>
+
+  </div><!-- /#appContent -->
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>
