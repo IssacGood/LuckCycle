@@ -99,12 +99,21 @@ function loadRecords(){
 function submitLevel(level, note){
   if (!uid){ alert("請先登入"); return; }
   const now = new Date();
+  const slot = slotIndex(now);
+  const today = dateKey(now);
+
+  const existing = allRecords.find(r => r.dateKey === today && r.slot === slot);
+  if (existing){
+    alert(`已經紀錄!這個時段(${slotLabel(slot)})今天已經登記過「${LEVEL_NAME[existing.level]}」了。`);
+    return;
+  }
+
   const record = {
     uid,
     level,
     note,
-    slot: slotIndex(now),
-    dateKey: dateKey(now),
+    slot,
+    dateKey: today,
     hour: now.getHours(),
     ts: serverTimestamp()
   };
@@ -443,6 +452,14 @@ const confirmNoteText = document.getElementById("confirmNoteText");
 
 document.querySelectorAll(".level-btn").forEach(btn => {
   btn.addEventListener("click", () => {
+    const now = new Date();
+    const currentSlot = slotIndex(now);
+    const todayKey = dateKey(now);
+    const existing = allRecords.find(r => r.dateKey === todayKey && r.slot === currentSlot);
+    if (existing){
+      alert(`已經紀錄!這個時段(${slotLabel(currentSlot)})今天已經登記過「${LEVEL_NAME[existing.level]}」了。\n如果要修改,請到下方「今日已登記」清單使用「改等級」或「改備註」按鈕。`);
+      return;
+    }
     pendingLevel = parseInt(btn.dataset.level, 10);
     const note = document.getElementById("noteInput").value.trim();
     confirmLevelText.textContent = LEVEL_NAME[pendingLevel];
