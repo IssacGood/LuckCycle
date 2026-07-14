@@ -79,7 +79,26 @@
         <h3>原始登記紀錄</h3>
         <ul id="rawList" class="raw-list"></ul>
       </div>
+
+      <div class="card danger-zone">
+        <h3>⚠️ 危險區域</h3>
+        <p class="hint small">清除後所有運勢紀錄與備註將永久刪除,無法復原。</p>
+        <button id="clearAllBtn" class="clear-all-btn">清除所有幸運紀錄</button>
+      </div>
     </section>
+
+    <!-- 清除確認 Modal -->
+    <div id="clearModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h3>⚠️ 確定要清除所有紀錄嗎?</h3>
+        <p class="hint small">這個動作會永久刪除全部運勢紀錄與備註,無法復原。若要繼續,請在下方輸入「確定」兩個字:</p>
+        <input type="text" id="clearConfirmInput" class="clear-confirm-input" placeholder="請輸入「確定」">
+        <div class="confirm-actions">
+          <button id="clearCancelBtn" class="confirm-cancel-btn">取消</button>
+          <button id="clearConfirmBtn" class="confirm-submit-btn danger-submit-btn" disabled>永久清除</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 預測頁 -->
     <section id="tab-predict" class="tab-panel">

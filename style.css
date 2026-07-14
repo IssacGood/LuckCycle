@@ -211,6 +211,63 @@ main{ padding: 8px 16px; }
   border-color: var(--low);
 }
 
+.danger-zone{
+  border-color: rgba(224,87,123,0.4);
+}
+.danger-zone h3{ color: var(--low); }
+.clear-all-btn{
+  width:100%;
+  padding: 12px 0;
+  border-radius: 10px;
+  border: 1px solid var(--low);
+  background: transparent;
+  color: var(--low);
+  font-size: 14px;
+  font-weight: 600;
+  cursor:pointer;
+}
+.clear-all-btn:active{ background: rgba(224,87,123,0.1); }
+
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal-overlay.hidden{ display:none; }
+.modal-box{
+  background: var(--card);
+  border: 1px solid var(--low);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
+}
+.modal-box h3{ margin:0 0 8px; color: var(--low); font-size:16px; }
+.clear-confirm-input{
+  width:100%;
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  font-size: 14px;
+}
+.clear-confirm-input:focus{ outline:none; border-color: var(--low); }
+.danger-submit-btn{
+  background: var(--low) !important;
+}
+.danger-submit-btn:disabled{
+  background: var(--border) !important;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
 .level-buttons{
   display:flex;
   gap:10px;

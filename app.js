@@ -2,7 +2,8 @@ import {
   auth, db, googleProvider,
   signInWithPopup, signOut, onAuthStateChanged,
   collection, addDoc, updateDoc, deleteDoc, doc,
-  query, where, orderBy, onSnapshot, serverTimestamp
+  query, where, orderBy, onSnapshot, serverTimestamp,
+  writeBatch, getDocs
 } from "./firebase-config.js";
 
 // ===== 基本設定 =====
@@ -370,6 +371,58 @@ document.addEventListener("click", (e) => {
   if (action === "edit-level") editRecordLevel(id);
   else if (action === "edit-note") editRecordNote(id);
   else if (action === "delete") deleteRecord(id);
+});
+
+// ===== 清除所有紀錄(雙重確認) =====
+const clearAllBtn = document.getElementById("clearAllBtn");
+const clearModal = document.getElementById("clearModal");
+const clearConfirmInput = document.getElementById("clearConfirmInput");
+const clearConfirmBtn = document.getElementById("clearConfirmBtn");
+const clearCancelBtn = document.getElementById("clearCancelBtn");
+
+clearAllBtn.addEventListener("click", () => {
+  clearConfirmInput.value = "";
+  clearConfirmBtn.disabled = true;
+  clearModal.classList.remove("hidden");
+  clearConfirmInput.focus();
+});
+
+clearCancelBtn.addEventListener("click", () => {
+  clearModal.classList.add("hidden");
+});
+
+clearConfirmInput.addEventListener("input", () => {
+  clearConfirmBtn.disabled = clearConfirmInput.value.trim() !== "確定";
+});
+
+clearConfirmBtn.addEventListener("click", async () => {
+  if (clearConfirmInput.value.trim() !== "確定") return;
+  if (!uid) return;
+
+  clearConfirmBtn.disabled = true;
+  clearConfirmBtn.textContent = "清除中...";
+
+  try {
+    const q = query(collection(db, "records"), where("uid", "==", uid));
+    const snapshot = await getDocs(q);
+    const docs = snapshot.docs;
+
+    // Firestore 一個 batch 最多 500 筆,超過就分批處理
+    const chunkSize = 450;
+    for (let i = 0; i < docs.length; i += chunkSize){
+      const batch = writeBatch(db);
+      docs.slice(i, i + chunkSize).forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    clearModal.classList.add("hidden");
+    alert("已清除所有紀錄");
+  } catch (err){
+    console.error("清除失敗", err);
+    alert("清除失敗:" + err.message);
+  } finally {
+    clearConfirmBtn.disabled = false;
+    clearConfirmBtn.textContent = "永久清除";
+  }
 });
 
 // ===== 頁籤切換 =====
