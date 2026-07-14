@@ -1,0 +1,200 @@
+:root{
+  --bg: #14112a;
+  --card: #1f1b3a;
+  --text: #f1eefc;
+  --muted: #9c93c4;
+  --low: #e0577b;
+  --mid: #e0b13f;
+  --high: #4fd1a5;
+  --accent: #7c6cf0;
+  --border: #322c56;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  min-height:100vh;
+}
+
+#app{
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 0 32px;
+}
+
+.topbar{
+  padding: 24px 20px 8px;
+  text-align:center;
+}
+.topbar h1{
+  margin:0;
+  font-size: 26px;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, var(--accent), var(--high));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.subtitle{
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.hidden{ display:none !important; }
+
+.user-box{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:12px;
+  font-size:13px;
+  color: var(--muted);
+}
+.user-avatar{
+  width:24px; height:24px;
+  border-radius:50%;
+  object-fit:cover;
+}
+.logout-btn{
+  border:1px solid var(--border);
+  background:transparent;
+  color: var(--muted);
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.auth-gate{
+  margin: 24px 16px;
+  text-align:center;
+}
+.google-btn{
+  width:100%;
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  color: #1a1730;
+  font-size: 15px;
+  font-weight: 600;
+  cursor:pointer;
+}
+.google-btn:active{ transform: scale(0.98); }
+
+.tabs{
+  display:flex;
+  gap:8px;
+  padding: 16px 16px 8px;
+  position: sticky;
+  top:0;
+  background: var(--bg);
+  z-index: 10;
+}
+.tab-btn{
+  flex:1;
+  padding: 10px 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor:pointer;
+}
+.tab-btn.active{
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+main{ padding: 8px 16px; }
+.tab-panel{ display:none; }
+.tab-panel.active{ display:block; }
+
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.card h3{ margin:0 0 8px; font-size:15px; }
+
+.hint{ color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+.hint.small{ font-size: 12px; }
+
+.level-buttons{
+  display:flex;
+  gap:10px;
+}
+.level-btn{
+  flex:1;
+  padding: 18px 0;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1730;
+  cursor:pointer;
+  transition: transform .1s ease;
+}
+.level-btn:active{ transform: scale(0.96); }
+.level-btn.low{ background: var(--low); color: white; }
+.level-btn.mid{ background: var(--mid); }
+.level-btn.high{ background: var(--high); color: #103227; }
+
+.prediction-compare{
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  text-align:center;
+}
+.prediction-compare.hidden{ display:none; }
+.prediction-compare.match{ background: rgba(79,209,165,0.15); color: var(--high); }
+.prediction-compare.mismatch{ background: rgba(224,87,123,0.15); color: var(--low); }
+
+.today-list, .raw-list{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.today-list li, .raw-list li{
+  display:flex;
+  justify-content:space-between;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+}
+.today-list li .tag, .raw-list li .tag{
+  font-weight:600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.tag.low{ background: var(--low); color:white; }
+.tag.mid{ background: var(--mid); color:#1a1730; }
+.tag.high{ background: var(--high); color:#103227; }
+.muted{ color: var(--muted); }
+
+.chart-wrap{ position: relative; height: 240px; margin-top: 8px; }
+
+.predict-table{
+  width:100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.predict-table th, .predict-table td{
+  padding: 8px 4px;
+  text-align:center;
+  border-bottom: 1px solid var(--border);
+}
+.predict-table th{ color: var(--muted); font-weight: 500; }
