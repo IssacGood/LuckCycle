@@ -26,6 +26,11 @@ function slotLabel(i){
   return `${pad(startH)}:00-${pad(endH)}:00`;
 }
 function scoreToLevel(score){ return Math.min(3, Math.max(1, Math.round(score))); }
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
 
 // ===== 登入 / 登出 =====
 const loginBtn = document.getElementById("loginBtn");
@@ -82,7 +87,7 @@ function loadRecords(){
     allRecords = snapshot.docs.map(doc => {
       const data = doc.data();
       const ts = data.ts && data.ts.toDate ? data.ts.toDate() : new Date();
-      return { id: doc.id, ts, level: data.level, slot: data.slot, dateKey: data.dateKey };
+      return { id: doc.id, ts, level: data.level, slot: data.slot, dateKey: data.dateKey, note: data.note || "" };
     });
     renderAll();
   }, err => console.error("讀取失敗", err));
@@ -91,10 +96,13 @@ function loadRecords(){
 // ===== 寫入紀錄 =====
 function submitLevel(level){
   if (!uid){ alert("請先登入"); return; }
+  const noteInput = document.getElementById("noteInput");
+  const note = noteInput ? noteInput.value.trim() : "";
   const now = new Date();
   const record = {
     uid,
     level,
+    note,
     slot: slotIndex(now),
     dateKey: dateKey(now),
     hour: now.getHours(),
@@ -104,6 +112,7 @@ function submitLevel(level){
 
   addDoc(collection(db, "records"), record).then(() => {
     showPredictionCompare(level, predictedLevel);
+    if (noteInput) noteInput.value = "";
   }).catch(err => {
     console.error("寫入失敗", err);
     alert("寫入失敗,請確認 Firestore 規則與網路連線");
@@ -167,7 +176,10 @@ function renderTodayList(){
   }
   list.innerHTML = todays.map(r => `
     <li>
-      <span>${slotLabel(r.slot)}(${pad(r.ts.getHours())}:${pad(r.ts.getMinutes())} 登記)</span>
+      <div>
+        <span>${slotLabel(r.slot)}(${pad(r.ts.getHours())}:${pad(r.ts.getMinutes())} 登記)</span>
+        ${r.note ? `<span class="record-note">📝 ${escapeHtml(r.note)}</span>` : ""}
+      </div>
       <span class="tag ${LEVEL_CLASS[r.level]}">${LEVEL_NAME[r.level]}</span>
     </li>
   `).join("");
@@ -182,7 +194,10 @@ function renderRawList(){
   }
   list.innerHTML = recent.map(r => `
     <li>
-      <span>${r.dateKey} ${slotLabel(r.slot)}</span>
+      <div>
+        <span>${r.dateKey} ${slotLabel(r.slot)}</span>
+        ${r.note ? `<span class="record-note">📝 ${escapeHtml(r.note)}</span>` : ""}
+      </div>
       <span class="tag ${LEVEL_CLASS[r.level]}">${LEVEL_NAME[r.level]}</span>
     </li>
   `).join("");
