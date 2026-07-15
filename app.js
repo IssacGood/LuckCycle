@@ -9,6 +9,7 @@ import {
 // ===== 基本設定 =====
 const SLOT_HOURS = 3;
 const SLOTS_PER_DAY = 24 / SLOT_HOURS;
+const MAX_CARRY_DAYS = 2; // 超過幾天沒登記,就不再延續前一次結果(視為空窗,不補值)
 const LEVEL_NAME = { 1: "低", 2: "中", 3: "高" };
 const LEVEL_CLASS = { 1: "low", 2: "mid", 3: "high" };
 
@@ -229,15 +230,28 @@ function buildFilledSeriesRobust(){
   const last = new Date();
   const points = [];
   let lastLevel = null;
+  let lastLevelDate = null; // 最後一次「真實登記」的日期時間,用來判斷是否超過補值上限
   let cursor = new Date(first.getFullYear(), first.getMonth(), first.getDate());
 
   while (cursor <= last){
     for (let slot = 0; slot < SLOTS_PER_DAY; slot++){
       const dKey = dateKey(cursor);
       const key = `${dKey}|${slot}`;
-      if (recordMap.has(key)) lastLevel = recordMap.get(key);
-      if (lastLevel !== null){
+      const slotTime = new Date(cursor);
+      slotTime.setHours(slot * SLOT_HOURS, 0, 0, 0);
+
+      if (recordMap.has(key)){
+        lastLevel = recordMap.get(key);
+        lastLevelDate = slotTime;
+      }
+
+      const withinCarryLimit = lastLevelDate !== null &&
+        daysBetween(lastLevelDate, slotTime) <= MAX_CARRY_DAYS;
+
+      if (lastLevel !== null && withinCarryLimit){
         points.push({ label: `${dKey.slice(5)} ${pad(slot*SLOT_HOURS)}時`, value: lastLevel });
+      } else {
+        points.push({ label: `${dKey.slice(5)} ${pad(slot*SLOT_HOURS)}時`, value: null }); // 留白
       }
     }
     cursor.setDate(cursor.getDate() + 1);
@@ -261,7 +275,8 @@ function renderHistoryChart(){
     data: { labels, datasets: [{
       label: "運勢", data,
       borderColor: "#7c6cf0", backgroundColor: "rgba(124,108,240,0.15)",
-      tension: 0.25, pointRadius: 2, fill: true
+      tension: 0.25, pointRadius: 2, fill: true,
+      spanGaps: false
     }]},
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -450,6 +465,7 @@ function computeDailyAverages(){
   const last = new Date();
   const days = [];
   let lastLevel = null;
+  let lastLevelDate = null;
   let cursor = new Date(first.getFullYear(), first.getMonth(), first.getDate());
 
   while (cursor <= last){
@@ -457,8 +473,21 @@ function computeDailyAverages(){
     let sum = 0, count = 0;
     for (let slot = 0; slot < SLOTS_PER_DAY; slot++){
       const key = `${dKey}|${slot}`;
-      if (recordMap.has(key)) lastLevel = recordMap.get(key);
-      if (lastLevel !== null){ sum += lastLevel; count++; }
+      const slotTime = new Date(cursor);
+      slotTime.setHours(slot * SLOT_HOURS, 0, 0, 0);
+
+      if (recordMap.has(key)){
+        lastLevel = recordMap.get(key);
+        lastLevelDate = slotTime;
+      }
+
+      const withinCarryLimit = lastLevelDate !== null &&
+        daysBetween(lastLevelDate, slotTime) <= MAX_CARRY_DAYS;
+
+      if (lastLevel !== null && withinCarryLimit){
+        sum += lastLevel;
+        count++;
+      }
     }
     if (count > 0){
       days.push({ dateKey: dKey, date: new Date(cursor), avg: sum / count });
